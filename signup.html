@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up | Trendy</title>
+    <meta name="description" content="Create your Trendy account to access exclusive premium products.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="brand-logo">Trendy</a>
+        <button class="hamburger" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+        </ul>
+        <div class="nav-icons">
+            <a href="cart.html" class="cart-icon">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="cart-count">0</span>
+            </a>
+        </div>
+    </nav>
+
+    <main style="flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 40px 5%;">
+        <div class="auth-container">
+            <h2>Create Account</h2>
+            <form id="signup-form">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" class="form-control" required placeholder="John Doe" minlength="2">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address (Optional if Mobile is provided)</label>
+                    <input type="email" id="email" class="form-control" placeholder="yourname@gmail.com" pattern="^[a-zA-Z0-9._%+\-]+@gmail\.com$" title="Only Gmail addresses (@gmail.com) are accepted">
+                    <small style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 4px; display: block;">Only @gmail.com addresses are accepted</small>
+                </div>
+
+                <!-- Mobile Number with OTP -->
+                <div class="form-group">
+                    <label for="mobile">Mobile Number (Optional if Email is provided)</label>
+                    <div class="otp-input-row">
+                        <span class="country-code">+91</span>
+                        <input type="tel" id="mobile" class="form-control" placeholder="9876543210" maxlength="10" pattern="[6-9]\d{9}" title="Enter a valid 10-digit Indian mobile number starting with 6-9">
+                        <button type="button" class="btn btn-otp" id="send-otp-btn" onclick="sendOTP()">Send OTP</button>
+                    </div>
+                    <small style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 4px; display: block;">Valid 10-digit Indian mobile number required</small>
+                </div>
+
+                <!-- OTP Verification (hidden initially) -->
+                <div class="form-group otp-section" id="otp-section" style="display: none;">
+                    <label for="otp-input">Enter OTP</label>
+                    <div class="otp-input-row">
+                        <input type="text" id="otp-input" class="form-control otp-field" placeholder="------" maxlength="6" pattern="\d{6}" title="Enter 6-digit OTP">
+                        <button type="button" class="btn btn-otp btn-verify" id="verify-otp-btn" onclick="verifyOTP()">Verify</button>
+                    </div>
+                    <div id="otp-timer" style="font-size: 0.78rem; margin-top: 6px; color: var(--text-secondary);"></div>
+                    <div id="otp-status" style="font-size: 0.78rem; margin-top: 4px;"></div>
+                </div>
+
+                <!-- Verified badge (hidden initially) -->
+                <div id="mobile-verified-badge" style="display: none; padding: 10px 14px; border-radius: var(--border-radius-sm); background: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.3); margin-bottom: 16px;">
+                    <i class="fas fa-check-circle" style="color: var(--success-color);"></i>
+                    <span style="color: var(--success-color); font-size: 0.88rem; font-weight: 500;"> Mobile number verified successfully!</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" class="form-control" required placeholder="••••••••" minlength="6">
+                    <div class="password-strength">
+                        <div class="password-strength-bar" id="strength-bar"></div>
+                    </div>
+                    <p id="strength-label" style="font-size: 0.78rem; margin-top: 4px; color: var(--text-secondary);"></p>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" class="form-control" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-block" id="signup-btn">Create Account</button>
+                <div class="form-text">
+                    Already have an account? <a href="login.html">Log in here</a>
+                </div>
+            </form>
+            <div style="text-align: center; margin-top: 24px; color: var(--text-secondary); font-size: 0.78rem;">
+                <i class="fas fa-lock" style="color: var(--success-color);"></i> Your data is encrypted and stored securely
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="main.js"></script>
+    <script>
+        const API_BASE = window.location.origin;
+        let mobileVerified = false;
+        let otpTimerInterval = null;
+
+        // Password strength indicator
+        const passwordInput = document.getElementById('password');
+        const strengthBar = document.getElementById('strength-bar');
+        const strengthLabel = document.getElementById('strength-label');
+
+        passwordInput.addEventListener('input', () => {
+            const result = checkPasswordStrength(passwordInput.value);
+            strengthBar.style.width = result.width;
+            strengthBar.style.background = result.color;
+            strengthLabel.textContent = passwordInput.value ? result.label : '';
+            strengthLabel.style.color = result.color;
+        });
+
+        // Send OTP
+        async function sendOTP() {
+            const mobile = document.getElementById('mobile').value.trim();
+            const mobileRegex = /^[6-9]\d{9}$/;
+            if (!mobileRegex.test(mobile)) {
+                showToast('Enter a valid 10-digit Indian mobile number', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('send-otp-btn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/send-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    document.getElementById('otp-section').style.display = 'block';
+                    document.getElementById('otp-input').focus();
+                    showToast(`OTP sent! (Demo OTP: ${data.demo_otp})`);
+
+                    // Start 5-minute countdown
+                    let seconds = 300;
+                    document.getElementById('otp-timer').textContent = `OTP expires in 5:00`;
+                    otpTimerInterval = setInterval(() => {
+                        seconds--;
+                        const m = Math.floor(seconds / 60);
+                        const s = seconds % 60;
+                        document.getElementById('otp-timer').textContent = `OTP expires in ${m}:${s.toString().padStart(2, '0')}`;
+                        if (seconds <= 0) {
+                            clearInterval(otpTimerInterval);
+                            document.getElementById('otp-timer').textContent = 'OTP expired. Request a new one.';
+                            btn.innerHTML = 'Resend OTP';
+                            btn.disabled = false;
+                        }
+                    }, 1000);
+
+                    // Disable resend for 30 seconds
+                    setTimeout(() => {
+                        if (!mobileVerified) {
+                            btn.innerHTML = 'Resend OTP';
+                            btn.disabled = false;
+                        }
+                    }, 30000);
+                } else {
+                    showToast(data.error, 'error');
+                    btn.innerHTML = 'Send OTP';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error('Fetch error:', err);
+                showToast('Server error. Make sure the backend is running.', 'error');
+                btn.innerHTML = 'Send OTP';
+                btn.disabled = false;
+            }
+        }
+
+        // Verify OTP
+        async function verifyOTP() {
+            const mobile = document.getElementById('mobile').value.trim();
+            const otp = document.getElementById('otp-input').value.trim();
+
+            if (otp.length !== 6) {
+                showToast('Enter the 6-digit OTP', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('verify-otp-btn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile, otp })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    mobileVerified = true;
+                    clearInterval(otpTimerInterval);
+                    document.getElementById('otp-section').style.display = 'none';
+                    document.getElementById('mobile-verified-badge').style.display = 'block';
+                    document.getElementById('mobile').disabled = true;
+                    document.getElementById('send-otp-btn').style.display = 'none';
+                    showToast('Mobile number verified!');
+                } else {
+                    showToast(data.error, 'error');
+                    btn.innerHTML = 'Verify';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error('Verify error:', err);
+                showToast('Server error. Please try again.', 'error');
+                btn.innerHTML = 'Verify';
+                btn.disabled = false;
+            }
+        }
+
+        // Form submission
+        document.getElementById('signup-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = sanitizeInput(document.getElementById('name').value.trim());
+            const email = document.getElementById('email').value.trim();
+            const mobile = document.getElementById('mobile').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (!email && !mobile) {
+                showToast('Please provide either an Email Address or a Mobile Number', 'error');
+                return;
+            }
+
+            // Gmail validation (if provided)
+            if (email) {
+                const gmailRegex = /^[a-zA-Z0-9._%+\-]+@gmail\.com$/i;
+                if (!gmailRegex.test(email)) {
+                    showToast('Only Gmail addresses (@gmail.com) are accepted', 'error');
+                    return;
+                }
+            }
+
+            // Mobile verification check (if provided)
+            if (mobile && !mobileVerified) {
+                showToast('Please verify your mobile number with OTP first', 'error');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showToast('Passwords do not match', 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showToast('Password must be at least 6 characters', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('signup-btn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, mobile, password })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showToast(data.message);
+                    setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+                } else {
+                    showToast(data.error, 'error');
+                    btn.innerHTML = 'Create Account';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error('Registration error:', err);
+                showToast('Server error. Make sure the backend is running.', 'error');
+                btn.innerHTML = 'Create Account';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

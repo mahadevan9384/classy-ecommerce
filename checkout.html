@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Checkout | Trendy</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar" style="justify-content: center;">
+        <a href="index.html" class="brand-logo">Trendy Secure Checkout</a>
+    </nav>
+
+    <main style="flex-grow: 1; padding: 0 5%;">
+        <div class="checkout-container">
+            <h2 style="margin-bottom: 8px; text-align: center;">Payment Details</h2>
+            <div style="text-align: center; margin-bottom: 28px;">
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">
+                    <i class="fas fa-lock" style="color: var(--success-color);"></i> End-to-end Encrypted via Stripe
+                </p>
+            </div>
+
+            <!-- Payment Method Selection -->
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500;">Choose Payment Method</p>
+            <div class="payment-methods" id="payment-methods">
+                <button type="button" class="payment-method-btn active" data-method="card" onclick="selectPayment(this)">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Credit Card</span>
+                </button>
+                <button type="button" class="payment-method-btn" data-method="paypal" onclick="selectPayment(this)">
+                    <i class="fab fa-paypal"></i>
+                    <span>PayPal</span>
+                </button>
+                <button type="button" class="payment-method-btn" data-method="apple" onclick="selectPayment(this)">
+                    <i class="fab fa-apple-pay"></i>
+                    <span>Apple Pay</span>
+                </button>
+                <button type="button" class="payment-method-btn" data-method="google" onclick="selectPayment(this)">
+                    <i class="fab fa-google-pay"></i>
+                    <span>Google Pay</span>
+                </button>
+            </div>
+
+            <!-- Card Form -->
+            <form id="checkout-form">
+                <div id="card-fields">
+                    <div class="form-group">
+                        <label>Name on Card</label>
+                        <input type="text" class="form-control" id="card-name" required placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>Card Number</label>
+                        <input type="text" class="form-control" id="card-number" required placeholder="0000 0000 0000 0000" maxlength="19">
+                    </div>
+                    <div style="display: flex; gap: 20px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Expiry (MM/YY)</label>
+                            <input type="text" class="form-control" id="card-expiry" required placeholder="MM/YY" maxlength="5">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>CVC</label>
+                            <input type="text" class="form-control" id="card-cvc" required placeholder="123" maxlength="4">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="alt-payment-msg" style="display: none; text-align: center; padding: 30px 0; color: var(--text-secondary);">
+                    <i class="fas fa-external-link-alt" style="font-size: 2rem; color: var(--accent-gold); margin-bottom: 12px; display: block;"></i>
+                    <p>You will be redirected to complete payment securely.</p>
+                </div>
+
+                <!-- Order Total -->
+                <div style="background: rgba(0,0,0,0.2); border-radius: var(--border-radius-sm); padding: 16px; margin-bottom: 20px; margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 1.1rem;">
+                        <span>Order Total</span>
+                        <span id="checkout-total" style="color: var(--accent-gold);">₹0</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-block" id="pay-btn">Pay Now</button>
+            </form>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="cart.html" style="color: var(--text-secondary); font-size: 0.88rem;">&larr; Return to Cart</a>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="main.js"></script>
+    <script>
+        // Show order total
+        document.addEventListener('DOMContentLoaded', () => {
+            const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            const tax = subtotal * 0.08;
+            const total = subtotal + tax;
+            document.getElementById('checkout-total').textContent = `₹${Math.round(total).toLocaleString('en-IN')}`;
+        });
+
+        // Payment method selection
+        function selectPayment(btn) {
+            document.querySelectorAll('.payment-method-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const method = btn.dataset.method;
+            const cardFields = document.getElementById('card-fields');
+            const altMsg = document.getElementById('alt-payment-msg');
+            const payBtn = document.getElementById('pay-btn');
+
+            if (method === 'card') {
+                cardFields.style.display = 'block';
+                altMsg.style.display = 'none';
+                cardFields.querySelectorAll('input').forEach(i => i.required = true);
+                payBtn.textContent = 'Pay Now';
+            } else {
+                cardFields.style.display = 'none';
+                altMsg.style.display = 'block';
+                cardFields.querySelectorAll('input').forEach(i => i.required = false);
+                const labels = { paypal: 'Pay with PayPal', apple: 'Pay with Apple Pay', google: 'Pay with Google Pay' };
+                payBtn.textContent = labels[method] || 'Pay Now';
+            }
+        }
+
+        // Card number formatting
+        document.getElementById('card-number').addEventListener('input', function(e) {
+            let val = this.value.replace(/\D/g, '').substring(0, 16);
+            this.value = val.replace(/(\d{4})(?=\d)/g, '$1 ');
+        });
+
+        // Expiry formatting
+        document.getElementById('card-expiry').addEventListener('input', function(e) {
+            let val = this.value.replace(/\D/g, '').substring(0, 4);
+            if (val.length >= 2) val = val.substring(0,2) + '/' + val.substring(2);
+            this.value = val;
+        });
+
+        // Submit
+        document.getElementById('checkout-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('pay-btn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                cart = [];
+                saveCart();
+                btn.innerHTML = '<i class="fas fa-check"></i> Payment Successful!';
+                btn.style.background = 'linear-gradient(135deg, #2d7d46, var(--success-color))';
+                btn.style.color = 'white';
+                showToast('Payment successful! Redirecting...');
+                setTimeout(() => { window.location.href = 'index.html'; }, 2000);
+            }, 2500);
+        });
+    </script>
+</body>
+</html>

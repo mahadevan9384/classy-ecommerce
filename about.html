@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | Trendy</title>
+    <meta name="description" content="Learn about Trendy's mission to bring premium luxury goods to the modern world.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="brand-logo">Trendy</a>
+        <button class="hamburger" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html" class="active">About</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+        </ul>
+        <div class="nav-icons">
+            <div id="auth-links" style="display: flex; gap: 15px; align-items: center;"></div>
+            <a href="cart.html" class="cart-icon">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="cart-count">0</span>
+            </a>
+        </div>
+    </nav>
+
+    <main style="padding: 70px 5%; max-width: 850px; margin: 0 auto; flex-grow: 1;">
+        <h2 class="section-title" style="margin-top: 0;">Our Story</h2>
+        <p class="section-subtitle">Crafting excellence since 2026</p>
+        
+        <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 22px; line-height: 1.8;">
+            Founded in 2026, <strong style="color: var(--text-primary);">Trendy</strong> represents the pinnacle of modern elegance and uncompromising quality. We believe that true luxury is found in the details—the precision of a crafted timepiece, the texture of premium leather, and the evocative scent of a designer parfum.
+        </p>
+        <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 22px; line-height: 1.8;">
+            Our mission is to curate the finest products from around the world and bring them to the discerning connoisseur. We prioritize sustainability, ethical craftsmanship, and timeless design in everything we offer.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin: 50px 0;">
+            <div style="text-align: center; padding: 28px; background: var(--surface-color); border-radius: var(--border-radius); border: 1px solid var(--glass-border);">
+                <i class="fas fa-leaf" style="font-size: 2rem; color: var(--accent-gold); margin-bottom: 12px;"></i>
+                <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Sustainable</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Ethically sourced materials from around the globe</p>
+            </div>
+            <div style="text-align: center; padding: 28px; background: var(--surface-color); border-radius: var(--border-radius); border: 1px solid var(--glass-border);">
+                <i class="fas fa-award" style="font-size: 2rem; color: var(--accent-gold); margin-bottom: 12px;"></i>
+                <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Premium Quality</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Every product meets our exacting standards</p>
+            </div>
+            <div style="text-align: center; padding: 28px; background: var(--surface-color); border-radius: var(--border-radius); border: 1px solid var(--glass-border);">
+                <i class="fas fa-heart" style="font-size: 2rem; color: var(--accent-gold); margin-bottom: 12px;"></i>
+                <h3 style="font-size: 1.1rem; margin-bottom: 8px;">Handcrafted</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Made with passion by skilled artisans</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center;">
+            <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop" alt="Our Store" style="width: 100%; border-radius: var(--border-radius); box-shadow: var(--shadow-lg);">
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-col">
+                <h3 class="brand-logo">Trendy</h3>
+                <p>Curating excellence and luxury for the modern world. Redefining elegance every single day.</p>
+            </div>
+            <div class="footer-col">
+                <h3>Quick Links</h3>
+                <a href="index.html">Home</a>
+                <a href="about.html">About Us</a>
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <div class="footer-col">
+                <h3>Customer Care</h3>
+                <a href="#">Shipping Policy</a>
+                <a href="#">Returns & Exchanges</a>
+                <a href="#">Privacy Policy</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Trendy Premium. All rights reserved. Secure and Safe Shopping.</p>
+        </div>
+    </footer>
+    <div id="toast" class="toast"></div>
+    <script src="main.js"></script>
+</body>
+</html>

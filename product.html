@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details | Trendy</title>
+    <meta name="description" content="View premium product details, specifications, and stock availability at Trendy.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="brand-logo">Trendy</a>
+        <button class="hamburger" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+        </ul>
+        <div class="nav-icons">
+            <div id="auth-links" style="display: flex; gap: 15px; align-items: center;"></div>
+            <a href="cart.html" class="cart-icon">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="cart-count">0</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="product-detail-page">
+        <div id="product-detail-container">
+            <p style="text-align:center; padding: 80px 20px; color: var(--text-secondary);">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--accent-gold);"></i><br><br>
+                Loading product details...
+            </p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-col">
+                <h3 class="brand-logo">Trendy</h3>
+                <p>Curating excellence and luxury for the modern world. Redefining elegance every single day.</p>
+            </div>
+            <div class="footer-col">
+                <h3>Quick Links</h3>
+                <a href="index.html">Home</a>
+                <a href="about.html">About Us</a>
+                <a href="contact.html">Contact Us</a>
+            </div>
+            <div class="footer-col">
+                <h3>Customer Care</h3>
+                <a href="#">Shipping Policy</a>
+                <a href="#">Returns & Exchanges</a>
+                <a href="#">Privacy Policy</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Trendy Premium. All rights reserved. Secure and Safe Shopping.</p>
+        </div>
+    </footer>
+
+    <div id="toast" class="toast"></div>
+    <script src="main.js"></script>
+    <script>
+        const API_BASE = window.location.origin;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const productId = params.get('id');
+
+            if (!productId) {
+                document.getElementById('product-detail-container').innerHTML =
+                    '<p style="text-align:center; padding: 80px 20px; color: var(--text-secondary);">Product not found. <a href="index.html" style="color: var(--accent-gold);">Go back to shop</a></p>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/api/products/${productId}`);
+                if (!res.ok) throw new Error('Not found');
+                const product = await res.json();
+                renderProductDetail(product);
+                document.title = `${product.name} | Trendy`;
+            } catch (err) {
+                document.getElementById('product-detail-container').innerHTML =
+                    '<p style="text-align:center; padding: 80px 20px; color: var(--text-secondary);">Product not found. <a href="index.html" style="color: var(--accent-gold);">Go back to shop</a></p>';
+            }
+        });
+
+        function renderProductDetail(p) {
+            let stockClass = 'in-stock';
+            let stockText = `In Stock (${p.stock} available)`;
+            let stockIcon = 'fa-check-circle';
+            if (p.stock === 0) {
+                stockClass = 'out-of-stock';
+                stockText = 'Out of Stock';
+                stockIcon = 'fa-times-circle';
+            } else if (p.stock <= 5) {
+                stockClass = 'low-stock';
+                stockText = `Low Stock — Only ${p.stock} left!`;
+                stockIcon = 'fa-exclamation-triangle';
+            }
+
+            const stars = '★'.repeat(p.rating) + '☆'.repeat(5 - p.rating);
+            const priceFormatted = '₹' + p.stock !== undefined ? p.price.toLocaleString('en-IN') : p.price;
+
+            let specsHTML = '';
+            if (p.specs) {
+                specsHTML = `<table class="spec-table">` +
+                    Object.entries(p.specs).map(([key, val]) =>
+                        `<tr><td class="spec-label">${key}</td><td class="spec-value">${val}</td></tr>`
+                    ).join('') + `</table>`;
+            }
+
+            document.getElementById('product-detail-container').innerHTML = `
+                <a href="index.html#collection" class="back-link"><i class="fas fa-arrow-left"></i> Back to Collection</a>
+                <div class="product-detail-grid">
+                    <div class="product-detail-img-wrap">
+                        ${p.badge ? `<span class="product-badge ${p.badge === 'Sale' ? 'sale' : ''}">${p.badge}</span>` : ''}
+                        <img src="${p.image}" alt="${p.name}" class="product-detail-img" id="product-main-img">
+                    </div>
+                    <div class="product-detail-info">
+                        <p class="product-detail-brand">${p.brand}</p>
+                        <h1 class="product-detail-name">${p.name}</h1>
+                        <div class="product-detail-rating">${stars} <span>(${p.rating}.0)</span></div>
+                        <p class="product-detail-price">₹${p.price.toLocaleString('en-IN')}</p>
+
+                        <div class="stock-status ${stockClass}">
+                            <i class="fas ${stockIcon}"></i> ${stockText}
+                        </div>
+
+                        <p class="product-detail-desc">${p.description}</p>
+
+                        <div class="product-detail-actions">
+                            <button class="btn btn-block ${p.stock === 0 ? 'btn-disabled' : ''}"
+                                onclick="addToCart(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.price}, '${p.image}')"
+                                ${p.stock === 0 ? 'disabled' : ''}>
+                                <i class="fas ${p.stock === 0 ? 'fa-ban' : 'fa-shopping-bag'}"></i>
+                                ${p.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                            </button>
+                        </div>
+
+                        <div class="product-detail-trust">
+                            <span><i class="fas fa-shield-halved"></i> Genuine Product</span>
+                            <span><i class="fas fa-truck-fast"></i> Free Delivery</span>
+                            <span><i class="fas fa-rotate-left"></i> 30-Day Returns</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-specs-section">
+                    <h2>Specifications</h2>
+                    ${specsHTML}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
